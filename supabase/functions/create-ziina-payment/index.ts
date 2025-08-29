@@ -1,5 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
 const FRONTEND_BASE_URL = Deno.env.get("FRONTEND_BASE_URL") || "http://localhost:5173";
 
 const PLAN_AMOUNTS: Record<string, number> = {
@@ -14,7 +12,7 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS });
   }
@@ -85,4 +83,3 @@ serve(async (req: Request) => {
     );
   }
 });
- 
