@@ -2,9 +2,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { CreditCard, Check, Star } from "lucide-react";
 
-// Replace with your deployed Supabase Edge Function URL
-const CREATE_PAYMENT_URL = "https://elhotvkkvbwxeuquqolc.supabase.co/functions/v1/create-ziina-payment";
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Mock payment simulation for testing
+const MOCK_PAYMENT_ENABLED = true;
 
 const PLANS = [
   { id: "monthly", label: "Monthly", price: 299, description: "Perfect for getting started", features: ["Full access", "24/7 support", "Cancel anytime"] },
@@ -16,16 +15,41 @@ export default function PlanPage() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
+  const simulatePayment = async (planId: string): Promise<void> => {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Simulate random success/failure for demo purposes
+    const shouldSucceed = Math.random() > 0.3; // 70% success rate
+    
+    if (shouldSucceed) {
+      // Simulate successful payment - redirect to success page
+      window.location.href = "/payment-success";
+    } else {
+      // Simulate failed payment - redirect to failure page
+      window.location.href = "/payment-failed";
+    }
+  };
   const handleSubscribe = async (planId: string) => {
     setLoadingId(planId);
     setError("");
 
+    if (MOCK_PAYMENT_ENABLED) {
+      try {
+        await simulatePayment(planId);
+      } catch (err: any) {
+        setError("Mock payment simulation failed");
+        setLoadingId(null);
+      }
+      return;
+    }
+
     try {
-      const res = await fetch(CREATE_PAYMENT_URL, {
+      const res = await fetch("https://elhotvkkvbwxeuquqolc.supabase.co/functions/v1/create-ziina-payment", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({ planId }),
       });
@@ -134,6 +158,13 @@ export default function PlanPage() {
       </div>
 
       <div className="text-center mt-12">
+        {MOCK_PAYMENT_ENABLED && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg max-w-md mx-auto">
+            <p className="text-yellow-800 text-sm font-medium">
+              🧪 Demo Mode: Payment simulation active
+            </p>
+          </div>
+        )}
         <p className="text-gray-500 text-sm">
           Secure payment processing • 256-bit SSL encryption • Cancel anytime
         </p>
