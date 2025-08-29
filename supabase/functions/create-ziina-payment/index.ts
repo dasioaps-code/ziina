@@ -1,7 +1,5 @@
-// supabase/functions/create-ziina-payment/index.ts
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const ZIINA_API_KEY = Deno.env.get("ZIINA_API_KEY")!;
 const FRONTEND_BASE_URL = Deno.env.get("FRONTEND_BASE_URL") || "http://localhost:5173";
 
 const PLAN_AMOUNTS: Record<string, number> = {
@@ -28,6 +26,16 @@ serve(async (req: Request) => {
   }
 
   try {
+    // Check if ZIINA_API_KEY is available
+    const ZIINA_API_KEY = Deno.env.get("ZIINA_API_KEY");
+    if (!ZIINA_API_KEY) {
+      console.error("ZIINA_API_KEY environment variable is not set");
+      return new Response(
+        JSON.stringify({ error: "Payment service configuration error. Please contact support." }),
+        { headers: { ...CORS, "Content-Type": "application/json" }, status: 500 },
+      );
+    }
+
     const { planId } = await req.json().catch(() => ({}));
     if (!planId || !(planId in PLAN_AMOUNTS)) {
       return new Response(
