@@ -4,6 +4,7 @@ import { CreditCard, Check, Star } from "lucide-react";
 
 // Replace with your deployed Supabase Edge Function URL
 const CREATE_PAYMENT_URL = "https://elhotvkkvbwxeuquqolc.supabase.co/functions/v1/create-ziina-payment";
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const PLANS = [
   { id: "monthly", label: "Monthly", price: 299, description: "Perfect for getting started", features: ["Full access", "24/7 support", "Cancel anytime"] },
@@ -22,7 +23,10 @@ export default function PlanPage() {
     try {
       const res = await fetch(CREATE_PAYMENT_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        },
         body: JSON.stringify({ planId }),
       });
 
