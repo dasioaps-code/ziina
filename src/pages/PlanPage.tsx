@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { CreditCard, Check, Star } from "lucide-react";
-import { ZIINA_API_KEY, ZIINA_API_BASE } from "../lib/env";
+
+// Replace with your deployed Supabase Edge Function URL
+const CREATE_PAYMENT_URL = "https://elhotvkkvbwxeuquqolc.supabase.co/functions/v1/create-ziina-payment";
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const PLANS = [
   { id: "monthly", label: "Monthly", price: 299, description: "Perfect for getting started", features: ["Full access", "24/7 support", "Cancel anytime"] },
@@ -13,44 +16,18 @@ export default function PlanPage() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  const PLAN_AMOUNTS: Record<string, number> = {
-    monthly: 299,
-    semiannual: 699,
-    annual: 899,
-  };
-
   const handleSubscribe = async (planId: string) => {
     setLoadingId(planId);
     setError("");
 
-    // Check if API key is configured
-    if (!ZIINA_API_KEY) {
-      setError("Ziina API key not configured. Please add VITE_ZIINA_API_KEY to your .env file.");
-      setLoadingId(null);
-      return;
-    }
-
     try {
-      const amount = PLAN_AMOUNTS[planId];
-      const currentUrl = window.location.origin;
-      
-      // Create payment directly with Ziina API
-      const ziinaPayload = {
-        amount,
-        currency: "AED",
-        description: `Subscription: ${planId}`,
-        redirect_url: `${currentUrl}/payment-success`,
-        cancel_url: `${currentUrl}/payment-failed`,
-        metadata: { planId }
-      };
-
-      const res = await fetch(`${ZIINA_API_BASE}/payments`, {
+      const res = await fetch(CREATE_PAYMENT_URL, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${ZIINA_API_KEY}`,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify(ziinaPayload),
+        body: JSON.stringify({ planId }),
       });
 
       let data: any = null;
