@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { CreditCard, Check, Star } from "lucide-react";
-import { ZIINA_API_KEY, ZIINA_API_BASE } from "../lib/env";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../lib/env";
 
 const PLANS = [
   { id: "monthly", label: "Monthly", price: 299, description: "Perfect for getting started", features: ["Full access", "24/7 support", "Cancel anytime"] },
@@ -23,34 +23,22 @@ export default function PlanPage() {
     setLoadingId(planId);
     setError("");
 
-    // Check if API key is configured
-    if (!ZIINA_API_KEY) {
-      setError("Ziina API key not configured. Please add VITE_ZIINA_API_KEY to your .env file.");
+    // Check if Supabase is configured
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      setError("Supabase not configured. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file.");
       setLoadingId(null);
       return;
     }
 
     try {
-      const amount = PLAN_AMOUNTS[planId];
-      const currentUrl = window.location.origin;
-      
-      // Create payment directly with Ziina API
-      const ziinaPayload = {
-        amount,
-        currency: "AED",
-        description: `Subscription: ${planId}`,
-        redirect_url: `${currentUrl}/payment-success`,
-        cancel_url: `${currentUrl}/payment-failed`,
-        metadata: { planId }
-      };
-
-      const res = await fetch(`${ZIINA_API_BASE}/payments`, {
+      // Call Supabase Edge Function instead of direct API call
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/create-ziina-payment`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${ZIINA_API_KEY}`,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify(ziinaPayload),
+        body: JSON.stringify({ planId }),
       });
 
       let data: any = null;
